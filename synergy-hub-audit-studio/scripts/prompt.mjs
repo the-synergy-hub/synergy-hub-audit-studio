@@ -1,0 +1,2 @@
+import readline from 'node:readline';import {Writable} from 'node:stream';
+export function promptSession(){let hide=false;const output=new Writable({write(chunk,encoding,callback){if(!hide)process.stdout.write(chunk);callback()}}),rl=readline.createInterface({input:process.stdin,output,terminal:!!process.stdin.isTTY});return{ask(q){return new Promise(resolve=>rl.question(q,resolve))},async secret(q){process.stdout.write(q);hide=true;const answer=await new Promise(resolve=>rl.question('',resolve));hide=false;process.stdout.write('\n');return answer},close(){rl.close()}}}

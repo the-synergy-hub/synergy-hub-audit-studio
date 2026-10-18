@@ -2,7 +2,7 @@
 
 This is a new Node.js/PostgreSQL application, separate from the earlier sample demo and from the main Synergy Hub. It retains the approved Audit Studio branding and centred window. It does not import or overwrite the existing Hub database.
 
-**Status:** implementation and local automated tests completed. Not deployed or verified against a real Cloudways database, Google account, PageSpeed account or AI provider. The development environment could not resolve the live test website, so a live public crawl must be verified on the target host. Do not describe this release as a fully launched commercial service before the acceptance checks below pass.
+**Status:** local automated tests pass. A separate local run audited https://thesynergycreative.nz (six public HTML pages, no PageSpeed or OpenAI key). This build adds the audit checks, score labels, Unicode action-list PDF and private client link described below. It is not a backlink report and it does not render JavaScript. PageSpeed field data, Google properties and AI rewrites stay off until the matching keys are set on the host. Do not describe this release as a fully launched commercial service before the acceptance checks below pass on the Cloudways app.
 
 ## Implemented now
 
@@ -10,21 +10,27 @@ This is a new Node.js/PostgreSQL application, separate from the earlier sample d
 - Separate tenant business workspaces. Each website has its own profile, stored documents, tasks, approved draft notes, keyword ideas, access instructions, implementation requests and audit history.
 - Durable PostgreSQL schema and database-backed audit queue. Results survive browser close and server restart. Stale interrupted jobs are failed clearly so they can be re-run; queued jobs are picked up again.
 - Bounded, server-side public HTML crawling with robots.txt checks, fixed public IPv4 socket resolution, private/reserved network blocking, redirect checks, timeouts and body limits. Default 20 pages, configurable up to 50. No custom ports, protected account areas or cross-site crawl.
-- Evidence-backed checks for HTTP failures, HTTPS, titles, descriptions, duplicates, H1 count, page language, viewport, canonical presence, missing image alt attributes, noindex directives and malformed JSON-LD. The score is the pass rate of implemented checks, not a Google ranking score or a full accessibility audit.
-- Optional PageSpeed API connection for mobile/desktop Lighthouse results, opportunities and supplied field-data category. No score is invented if the API is absent or fails. Lab TBT is not labelled INP. Tests apply to the start page, not every crawled page.
+- Evidence-backed checks for HTTP failures, HTTPS, titles, descriptions, duplicates, H1 count, page language, viewport, canonical presence and target, redirect chains, missing image alt attributes, noindex directives and malformed JSON-LD. The crawler reads the sitemap named in robots.txt, compares it with the crawled URLs when the crawl is not cut short, and reports the robots rules it saw.
+- AIO readiness checks: llms.txt, robots rules for GPTBot, Google-Extended, ClaudeBot, PerplexityBot and CCBot, Organization, WebSite, FAQ and LocalBusiness schema, question headings, and citations. Entity name, logo and sameAs are compared with the brand profile when that profile or schema exists. Each finding has its own plain-English suggestion, impact and effort. An optional AI rewrite is added only after the brand permission is on, and it is labelled as guidance.
+- Content and local checks: thin pages from the visible word count (contact, login, cart, checkout and thank-you pages are skipped), headings that fight the page title, and LocalBusiness compared with the places saved on the brand profile. Keyword ideas stay labelled as unmeasured demand.
+- UX signals from the returned HTML: a form, a tel link, a mailto link and a clear next step. Client-site security headers from the homepage response: HSTS, Content-Security-Policy, framing, nosniff and Referrer-Policy. Both are signals. A person still needs to try the journey.
+- Area scores are the pass rate of the checks that actually ran. A check that did not run stays blank and the screen says Not measured. PageSpeed without a key says Needs a key. Noindex notes and long titles are listed for review and are not forced into the pass rate.
+- Optional PageSpeed API connection for mobile/desktop Lighthouse results, including accessibility and best-practice scores, opportunities, and field LCP, CLS and INP when Google supplies them. No score is invented if the API is absent or fails. The screen says Needs a key when `PAGESPEED_API_KEY` is not set. Lab TBT is not labelled INP. Tests apply to the start page, not every crawled page.
 - Optional Google OAuth with state, PKCE, encrypted per-site refresh tokens and property selection. Read-only Search Console queries/pages and GA4 top pages, countries, cities, channels and totals. GA4 is filtered to the selected hostname. Data is refreshed manually and separately timestamped.
 - Optional OpenAI Responses structured editorial analysis, only after website owner permission. Uses public page extracts, confirmed brand fields and stored text documents. No website tools or publishing. AI output is labelled as unverified editorial guidance. No AI-readiness percentage or invented search volume is produced.
-- Real-data HTML report, report-only printing, downloadable PDF text summary, audit JSON and action-plan CSV. Browser print-to-PDF retains the full visual report and Unicode text. Direct PDF summary uses standard PDF fonts and transliterates accented characters.
+- Real-data HTML report with one ordered action list, report-only printing, audit JSON and action-plan CSV. The downloaded PDF is that ordered list, drawn with DejaVu Sans so macrons such as ā survive. A private client link opens only that report, expires after 90 days, and stores a hash of the token rather than the token itself.
 
 ## Not implemented / not advertised as active
 
-Automated website edits, unrestricted crawls, JavaScript rendering, external-link destination checking, full browser/device testing, Bing integration, AI answer-engine visibility measurement, keyword-volume/competitor data, PDF/DOCX parsing, credential vault, outgoing emails, scheduled audits, billing, public self-registration, staff invitations, self-service password-reset emails, and subscription management. These are follow-on work, not switches that will become live by deploying this ZIP.
+Automated website edits, unrestricted crawls, JavaScript rendering, backlink reports, external-link destination checking, full browser/device testing, Bing integration, measured appearance in AI answers, keyword-volume/competitor data, PDF/DOCX parsing, credential vault, outgoing emails, scheduled audits, billing, public self-registration, staff invitations, self-service password-reset emails, and subscription management. AIO scores here are readiness checks on the public HTML, not a count of mentions in ChatGPT or Google AI Overviews. These gaps are follow-on work, not switches that will become live by deploying this package.
 
 TXT/Markdown documents work now. For a PDF brand guideline, export or copy reviewed text into a TXT document before upload. Implementation requests are saved in the database but no email is sent.
 
 ## Deploy separately on Cloudways Velocity
 
-1. Unzip the package. Put the **contents** of `synergy-hub-audit-studio` in a new GitHub repository, for example `synergy-hub-audit-studio`. `package.json`, `package-lock.json`, `server.mjs`, `lib`, `scripts`, `public` and `test` must sit directly at repository root. Do not commit `.env`, passwords, tokens or a database dump.
+The live app is Cloudways application **nodejs-1676770-6730920**, served at `https://nodejs-1676770-6730920.cloudwaysnodeapps.com`. In this repository the Node application is the `synergy-hub-audit-studio` directory, not the parent folder. Cloudways must use that directory as the application root, because that is the folder that contains `package.json`.
+
+1. Connect this repository. Set the application root to `synergy-hub-audit-studio` (the folder with `package.json`). `server.mjs`, `lib`, `scripts`, `public`, `test`, `assets/DejaVuSans.ttf` and the lockfile must all be deployed. Do not commit `.env`, passwords, tokens, `node_modules` or a database dump.
 2. Create a **separate** Velocity Node.js app and connect that repository. Do not replace The Synergy Creative, Sassy Sadie or Ocean Hunter app files.
 3. Use Node **22 LTS or a supported newer LTS**, root `./`, install `npm ci`, build `npm run build`, start `npm start`, port **3000**. Set `PORT=3000` as well; configured application port and environment port must match. No static output directory.
 4. Create a dedicated PostgreSQL database for this app. Set `DATABASE_URL` to the database connection string. URL-encode special characters in its username/password. Use verified TLS for a remote database (`DATABASE_SSL=true`; provide `DATABASE_CA` when needed). For a private local connection, follow the database provider's connection settings. Never set `rejectUnauthorized:false`.
@@ -38,8 +44,14 @@ TXT/Markdown documents work now. For a PDF brand guideline, export or copy revie
    | `DATABASE_URL` | Dedicated PostgreSQL connection string |
    | `DATABASE_SSL` | As required by the database connection |
    | `MAX_CRAWL_PAGES` | `20` initially |
+   | `PAGESPEED_API_KEY` | Optional. Without it, field LCP, CLS, INP and the Lighthouse accessibility and best-practice scores say Needs a key |
+   | `OPENAI_API_KEY` | Optional. Rewrites run only when this and `OPENAI_MODEL` are set and the brand AI permission is ticked |
+   | `OPENAI_MODEL` | Optional. A model that supports Responses structured output |
+   | `GOOGLE_CLIENT_ID` | Optional. Search Console and GA4 |
+   | `GOOGLE_CLIENT_SECRET` | Optional. Pair with the client id |
+   | `APP_ENCRYPTION_KEY` | Required only when Google is connected. 32-byte base64 key for the stored token |
 
-   Copy names from `.env.example`; enter real secrets only in Cloudways settings. `PUBLIC_APP_URL` determines cookie and origin security. Update it when adding a custom domain; use one canonical application address.
+   For this Cloudways app, `PUBLIC_APP_URL` must be exactly `https://nodejs-1676770-6730920.cloudwaysnodeapps.com` with no path and no trailing slash. The Google redirect URI, if Google is enabled, is `https://nodejs-1676770-6730920.cloudwaysnodeapps.com/api/google/callback`. Enter real secrets only in Cloudways settings. `PUBLIC_APP_URL` determines cookie and origin security. Update it when adding a custom domain; use one canonical application address. The HTML, AIO, security, UX, PDF and client-link features work without the PageSpeed, OpenAI and Google keys.
 6. Deploy. Schema creation runs on application startup. `/health` must return `{"status":"ok","mode":"production-foundation"}`. If the database is unavailable the application stops rather than silently using browser storage.
 7. Open the application terminal in the deployed root directory. Run `npm run create-owner`. Enter the business name, owner email, a unique password of at least 12 characters, and `https://thesynergycreative.nz/` as the first website. Password entry is hidden. Keep it private; do not send it in chat. If your hosting terminal does not support interactive input, use an SSH terminal with a TTY.
 8. Open the app's HTTPS URL and sign in. Do the first public-page crawl **before** enabling optional services. Configure database backups and a restore procedure with your hosting provider before storing customer information.
@@ -92,7 +104,7 @@ npm test
 npm audit --omit=dev
 ```
 
-The automated database tests use PGlite (a PostgreSQL build) in memory; production uses the `pg` driver against PostgreSQL. HTTP tests cover authentication, CSRF, tenant isolation, persistent data, queue handling, unavailable integrations and logout. Network/crawler tests cover reserved address rejection, DNS pinning, redirects, robots and HTML checks. Provider tests use fixtures, not real accounts. Interface tests render the real-data screens and verify PDF generation in a DOM harness; they are not visual browser/device QA.
+The automated database tests use PGlite (a PostgreSQL build) in memory; production uses the `pg` driver against PostgreSQL. HTTP tests cover authentication, CSRF, tenant isolation, persistent data, queue handling, unavailable integrations, logout, omission of the encrypted Google token, and the private share link. Network/crawler tests cover reserved address rejection, DNS pinning, redirects, robots, sitemaps, llms.txt and HTML checks. Provider tests use fixtures, not real accounts, including field LCP, CLS and INP. Interface tests render the real-data screens, the Needs a key state, and the share page. The PDF test checks that a macron survives in the Unicode font map. They are not a substitute for looking at the report in a browser.
 
 Optional local development: load your own `.env` with `node --env-file=.env server.mjs`, use a separate development PostgreSQL database, `NODE_ENV=development` and `PUBLIC_APP_URL=http://localhost:3000`. CLI scripts can be run as `node --env-file=.env scripts/create-owner.mjs`. No `.env` file is loaded implicitly.
 
